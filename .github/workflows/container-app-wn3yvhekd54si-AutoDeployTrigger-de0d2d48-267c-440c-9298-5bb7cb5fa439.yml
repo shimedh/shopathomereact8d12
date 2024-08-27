@@ -1,0 +1,47 @@
+name: Trigger auto deployment for container-app-wn3yvhekd54si
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - 'fastify-api-server/**'
+    - '.github/workflows/container-app-wn3yvhekd54si-AutoDeployTrigger-de0d2d48-267c-440c-9298-5bb7cb5fa439.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.CONTAINERAPPWN3YVHEKD54SI_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.CONTAINERAPPWN3YVHEKD54SI_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.CONTAINERAPPWN3YVHEKD54SI_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/fastify-api-server 
+          registryUrl: 
+          registryUsername: ${{ secrets.CONTAINERAPPWN3YVHEKD54SI_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.CONTAINERAPPWN3YVHEKD54SI_REGISTRY_PASSWORD }}
+          containerAppName: container-app-wn3yvhekd54si
+          resourceGroup: shopathomereact8d12b92a
+          imageToBuild: default/container-app-wn3yvhekd54si:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
